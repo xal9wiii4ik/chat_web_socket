@@ -31,8 +31,8 @@ class ChatConsumer(WebsocketConsumer):
             self.channel_name
         )
         self.accept()
-        print(self.user_id)
-        send_message(self=self, name=self.room_name)
+        if self.chat_type == 'constant':
+            send_message(self=self, name=self.room_name)
 
     def disconnect(self, code):
         async_to_sync(self.channel_layer.group_discard)(
@@ -55,7 +55,8 @@ class ChatConsumer(WebsocketConsumer):
     def chat_message(self, event):
         message = event['message']
 
-        add_message.delay(user_id=self.user_id, message=message, room_name=self.room_name)
+        if self.chat_type == 'constant':
+            add_message.delay(user_id=self.user_id, message=message, room_name=self.room_name)
         self.send(text_data=json.dumps({
             'message': message
         }))
