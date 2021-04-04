@@ -3,16 +3,29 @@ from rest_framework.views import APIView
 from rest_framework.response import Response
 from rest_framework.viewsets import GenericViewSet
 
-from chat.models import InvitedPerson
+from chat.models import InvitedPerson, Room
 from chat.services_views import (
     create_room,
     join_chat,
     count_invited_persons,
     validate_invite_person,
 )
-from chat.serializers import InvitedPersonModelSerializer
+from chat.serializers import InvitedPersonModelSerializer, RoomModelSerializer
 from chat.tasks import send_invited_email
 from chat.permissions import IsPostOrReadOnly
+
+
+class RoomsViewSet(mixins.ListModelMixin,
+                   mixins.DestroyModelMixin,
+                   GenericViewSet):
+    """ View set for user rooms """
+
+    queryset = Room.objects.all()
+    serializer_class = RoomModelSerializer
+    permission_classes = {permissions.IsAuthenticated}
+
+    def get_queryset(self):
+        return self.queryset.objects.filter(owner=self.request.user)
 
 
 class InvitedPersonModelViewSet(mixins.CreateModelMixin,
