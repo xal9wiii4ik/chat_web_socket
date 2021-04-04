@@ -32,9 +32,6 @@ class InvitedPersonModelViewSet(mixins.CreateModelMixin,
 class RoomAPIView(APIView):
     """ API view for room """
 
-    # renderer_classes = [renderers.TemplateHTMLRenderer, renderers.JSONRenderer]
-    renderer_classes = [renderers.JSONRenderer]
-
     def get(self, request, room_name: str, chat_type: str):
         data = {
             'room_name': room_name,
@@ -42,10 +39,10 @@ class RoomAPIView(APIView):
         }
         if chat_type == 'constant':
             if join_chat(request=request, room_name=room_name):
-                return Response(data=data, status=status.HTTP_200_OK, template_name='chat/room.html')
+                return Response(data=data, status=status.HTTP_200_OK)
             # TODO bad request template
-            return Response(data=data, status=status.HTTP_400_BAD_REQUEST, template_name='chat/room.html')
-        return Response(data=data, status=status.HTTP_200_OK, template_name='chat/room.html')
+            return Response(data=data, status=status.HTTP_400_BAD_REQUEST)
+        return Response(data=data, status=status.HTTP_200_OK)
 
     def post(self, request, room_name: str, chat_type: str):
         data = {
@@ -55,13 +52,8 @@ class RoomAPIView(APIView):
         if chat_type == 'constant':
             serializer_data = create_room(request=request, room_name=room_name)
             if not serializer_data:
-                # return Response(data=data, status=status.HTTP_200_OK, template_name='chat/room.html')
                 return Response(data=data, status=status.HTTP_200_OK)
-            # TODO set some template and delete exist, data => serializer_data
-            # return Response(data=data, status=status.HTTP_400_BAD_REQUEST, template_name='chat/room.html')
             return Response(data=data, status=status.HTTP_400_BAD_REQUEST)
-        # return Response(data=data, status=status.HTTP_200_OK, template_name='chat/room.html')
-        return Response(data=data, status=status.HTTP_200_OK)
 
 
 def index(request):

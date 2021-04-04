@@ -2,9 +2,13 @@ import json
 
 from asgiref.sync import async_to_sync
 from channels.generic.websocket import WebsocketConsumer
-
+from rest_framework_simplejwt.tokens import UntypedToken
+from jwt import decode as jwt_decode
 from chat.models import Room, Message
 from chat.tasks import add_message
+from urllib.parse import parse_qs
+
+from chat_ws import settings
 
 
 def send_message(self, name: str):
@@ -21,9 +25,9 @@ def send_message(self, name: str):
 class ChatConsumer(WebsocketConsumer):
 
     def connect(self):
+        print(self.scope)
         self.room_name = self.scope['url_route']['kwargs']['room_name']
         self.chat_type = self.scope['url_route']['kwargs']['chat_type']
-        self.user_id = self.scope['user']._wrapped.id
         self.room_group_name = f'chat_{self.room_name}s'
 
         async_to_sync(self.channel_layer.group_add)(
@@ -32,6 +36,7 @@ class ChatConsumer(WebsocketConsumer):
         )
         self.accept()
         if self.chat_type == 'constant':
+            self.user_id = self.scope['user']
             send_message(self=self, name=self.room_name)
 
     def disconnect(self, code):
@@ -42,21 +47,22 @@ class ChatConsumer(WebsocketConsumer):
 
     def receive(self, text_data=None, bytes_data=None):
         text_data_json = json.loads(text_data)
-        message = text_data_json['message']
 
         async_to_sync(self.channel_layer.group_send)(
             self.room_group_name,
             {
                 'type': 'chat_message',
-                'message': message
+                'message': text_data_json['message'],
+                'username': text_data_json['username']
             }
         )
 
     def chat_message(self, event):
-        message = event['message']
+        data = {
+            'message': event['message'],
+            'username': event['username']
+        }
 
         if self.chat_type == 'constant':
-            add_message.delay(user_id=self.user_id, message=message, room_name=self.room_name)
-        self.send(text_data=json.dumps({
-            'message': message
-        }))
+            add_message.delay(user_id=self.user_id, message=data['message'], room_name=self.room_name)
+        self.send(text_data=json.dumps(data))
