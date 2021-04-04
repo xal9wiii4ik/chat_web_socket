@@ -1,14 +1,10 @@
 import json
 
 from asgiref.sync import async_to_sync
+
 from channels.generic.websocket import WebsocketConsumer
-from rest_framework_simplejwt.tokens import UntypedToken
-from jwt import decode as jwt_decode
 from chat.models import Room, Message
 from chat.tasks import add_message
-from urllib.parse import parse_qs
-
-from chat_ws import settings
 
 
 def send_message(self, name: str):
@@ -25,7 +21,6 @@ def send_message(self, name: str):
 class ChatConsumer(WebsocketConsumer):
 
     def connect(self):
-        print(self.scope)
         self.room_name = self.scope['url_route']['kwargs']['room_name']
         self.chat_type = self.scope['url_route']['kwargs']['chat_type']
         self.room_group_name = f'chat_{self.room_name}s'
