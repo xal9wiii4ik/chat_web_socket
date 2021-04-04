@@ -7,14 +7,15 @@ from chat.models import Room, Message
 from chat.tasks import add_message
 
 
-def send_message(self, name: str):
+def send_message(self, name: str) -> None:
     """ Sending all messages that was before """
 
     room = Room.objects.get(name=name)
     messages = Message.objects.filter(room=room)
     for message in messages:
         self.send(text_data=json.dumps({
-            'message': message.text
+            'message': message.text,
+            'username': message.owner.username
         }))
 
 
@@ -24,14 +25,13 @@ class ChatConsumer(WebsocketConsumer):
         self.room_name = self.scope['url_route']['kwargs']['room_name']
         self.chat_type = self.scope['url_route']['kwargs']['chat_type']
         self.room_group_name = f'chat_{self.room_name}s'
-
         async_to_sync(self.channel_layer.group_add)(
             self.room_group_name,
             self.channel_name
         )
         self.accept()
         if self.chat_type == 'constant':
-            self.user_id = self.scope['user']
+            self.user = self.scope['user']
             send_message(self=self, name=self.room_name)
 
     def disconnect(self, code):
@@ -48,16 +48,16 @@ class ChatConsumer(WebsocketConsumer):
             {
                 'type': 'chat_message',
                 'message': text_data_json['message'],
-                'username': text_data_json['username']
+                'username': text_data_json['username'],
             }
         )
 
     def chat_message(self, event):
         data = {
             'message': event['message'],
-            'username': event['username']
+            'username': event['username'],
         }
 
         if self.chat_type == 'constant':
-            add_message.delay(user_id=self.user_id, message=data['message'], room_name=self.room_name)
+            add_message.delay(user_id=self.user.id, message=data['message'], room_name=self.room_name)
         self.send(text_data=json.dumps(data))

@@ -1,10 +1,11 @@
+from django.contrib.auth import get_user_model
 from rest_framework.request import Request
 
 from chat.serializers import RoomModelSerializer
 from chat.models import Room, InvitedPerson
 
 
-def create_room(request: Request, room_name: str) -> bool or dict:
+def create_room(request: Request, room_name: str) -> dict:
     """ Function for creating the room """
 
     rooms = Room.objects.filter(owner_id=request.user.id)
@@ -15,8 +16,10 @@ def create_room(request: Request, room_name: str) -> bool or dict:
             return {'error': 'Room with this room_name already exist'}
     serializer = RoomModelSerializer(data={'owner': request.user.id, 'name': room_name})
     if serializer.is_valid():
-        RoomModelSerializer.create(serializer, serializer.validated_data)
-        return False
+        room = RoomModelSerializer.create(serializer, serializer.validated_data)
+        data = serializer.data
+        data.update({'room_id': room.id})
+        return data
     else:
         return serializer.errors
 
@@ -41,3 +44,16 @@ def count_invited_persons(request: Request) -> bool:
     if len(persons) >= 3:
         return False
     return True
+
+
+def validate_invite_person(request: Request) -> Request or bool:
+    """ Checking and replacing data """
+
+    try:
+        room = Room.objects.get(name=request.data['room'])
+        user = get_user_model().objects.get(username=request.data['user'])
+        request.data['user'] = user.id
+        request.data['room'] = room.id
+        return request
+    except Exception:
+        return False

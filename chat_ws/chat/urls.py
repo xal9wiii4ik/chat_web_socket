@@ -9,6 +9,5 @@ router = SimpleRouter()
 router.register(r'invite_person', InvitedPersonModelViewSet)
 
 urlpatterns = [
-    path('', views.index, name='index'),
     path('chat/<str:room_name>/<str:chat_type>/', views.RoomAPIView.as_view(), name='room'),
 ] + router.urls

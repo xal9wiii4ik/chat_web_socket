@@ -1,14 +1,18 @@
-from rest_framework import status, renderers, mixins
+from rest_framework import status, mixins, permissions
 from rest_framework.views import APIView
 from rest_framework.response import Response
 from rest_framework.viewsets import GenericViewSet
 
-from django.shortcuts import render
-
 from chat.models import InvitedPerson
-from chat.services_views import create_room, join_chat, count_invited_persons
+from chat.services_views import (
+    create_room,
+    join_chat,
+    count_invited_persons,
+    validate_invite_person,
+)
 from chat.serializers import InvitedPersonModelSerializer
 from chat.tasks import send_invited_email
+from chat.permissions import IsPostOrReadOnly
 
 
 class InvitedPersonModelViewSet(mixins.CreateModelMixin,
@@ -18,19 +22,31 @@ class InvitedPersonModelViewSet(mixins.CreateModelMixin,
 
     queryset = InvitedPerson.objects.all()
     serializer_class = InvitedPersonModelSerializer
+    permission_classes = [permissions.IsAuthenticated]
 
     def create(self, request, *args, **kwargs):
-        if count_invited_persons(request=request):
-            protocol = 'https://' if request.is_secure() else 'http://'
-            web_url = protocol + request.get_host()
-            send_invited_email(web_url=web_url, room_id=request.data['room'], user_id=request.data['user'])
-            return super().create(request, *args, **kwargs)
+        if validate_invite_person(request=request):
+            serializer = self.serializer_class(data=request.data)
+            if serializer.is_valid():
+                if count_invited_persons(request=request):
+                    send_invited_email(
+                        web_url='http://localhost:8080',
+                        room_id=request.data['room'],
+                        user_id=request.data['user'])
+                    return super().create(request, *args, **kwargs)
+                else:
+                    return Response(data={'error': 'You can invite only 3 users'}, status=status.HTTP_400_BAD_REQUEST)
+            else:
+                print(serializer.errors)
+                return Response(data=serializer.errors, status=status.HTTP_400_BAD_REQUEST)
         else:
-            return Response(data={'error': 'You can invite only 3 users'}, status=status.HTTP_400_BAD_REQUEST)
+            return Response(data={'error': 'user does not exist'}, status=status.HTTP_400_BAD_REQUEST)
 
 
 class RoomAPIView(APIView):
     """ API view for room """
+
+    permission_classes = [IsPostOrReadOnly]
 
     def get(self, request, room_name: str, chat_type: str):
         data = {
@@ -44,26 +60,8 @@ class RoomAPIView(APIView):
         return Response(data=data, status=status.HTTP_200_OK)
 
     def post(self, request, room_name: str, chat_type: str):
-        data = {
-            'room_name': room_name,
-            'chat_type': chat_type
-        }
         if chat_type == 'constant':
             serializer_data = create_room(request=request, room_name=room_name)
-            if not serializer_data:
-                return Response(data=data, status=status.HTTP_200_OK)
-            return Response(data=data, status=status.HTTP_400_BAD_REQUEST)
-
-
-def index(request):
-    return render(request=request, template_name='index.html')
-
-
-def room(request, room_name: str, chat_type: str):
-    if chat_type == 'constant':
-        pass
-
-    return render(request=request, template_name='chat/room.html', context={
-        'room_name': room_name,
-        'chat_type': chat_type
-    })
+            if len(serializer_data) > 1:
+                return Response(data=serializer_data, status=status.HTTP_201_CREATED)
+            return Response(data=serializer_data, status=status.HTTP_400_BAD_REQUEST)
