@@ -35,12 +35,9 @@ def count_invited_persons(request: Request) -> bool:
     """ Checking exist invited persons in the room """
 
     room = Room.objects.get(id=request.data['room'])
-    print(room)
     if room.owner != request.user:
-        print(1)
         return False
     persons = InvitedPerson.objects.filter(room__id=request.data['room'])
-    print(persons)
     if len(persons) >= 3:
         return False
     return True

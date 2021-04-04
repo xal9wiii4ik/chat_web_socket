@@ -40,7 +40,6 @@ class RoomAPIView(APIView):
         if chat_type == 'constant':
             if join_chat(request=request, room_name=room_name):
                 return Response(data=data, status=status.HTTP_200_OK)
-            # TODO bad request template
             return Response(data=data, status=status.HTTP_400_BAD_REQUEST)
         return Response(data=data, status=status.HTTP_200_OK)
 
