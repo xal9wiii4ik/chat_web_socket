@@ -5,7 +5,7 @@ from django.db import models
 class Room(models.Model):
     """ Model room """
 
-    name = models.CharField(max_length=30, verbose_name='Имя чата')
+    name = models.CharField(max_length=30, verbose_name='Имя чата', unique=True)
     owner = models.ForeignKey(to=get_user_model(),
                               related_name='room_owner',
                               on_delete=models.CASCADE)
