@@ -50,7 +50,6 @@ class InvitedPersonModelViewSet(mixins.CreateModelMixin,
                 else:
                     return Response(data={'error': 'You can invite only 3 users'}, status=status.HTTP_400_BAD_REQUEST)
             else:
-                print(serializer.errors)
                 return Response(data=serializer.errors, status=status.HTTP_400_BAD_REQUEST)
         else:
             return Response(data={'error': 'user does not exist'}, status=status.HTTP_400_BAD_REQUEST)
