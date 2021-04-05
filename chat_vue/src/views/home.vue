@@ -6,9 +6,9 @@
         <input v-model="roomName1" type="text" class="chats__form__input" placeholder="enter the name of chat">
         <button class="chats__form__button"> connect </button>
       </form>
-      <h4 class="chats__form__text"> If you want to create permanent you should sign in</h4>
+      <h4 class="chats__form__text" v-if="!is_login"> If you want to create permanent you should sign in</h4>
       <form class="chats__form" v-if="is_login" @submit.prevent="permanentChatHandler">
-        <h4 class="chats__form__text"> You can create a permanent chat.</h4>
+        <h4 class="chats__form__text"> You can create or connect to a permanent chat.</h4>
         <input v-model="roomName2" type="text" class="chats__form__input" placeholder="enter the name of chat">
         <button class="chats__form__button"> connect </button>
       </form>

@@ -1,3 +1,4 @@
+from django.db.models import F
 from rest_framework import status, mixins, permissions
 from rest_framework.views import APIView
 from rest_framework.response import Response
@@ -28,14 +29,20 @@ class RoomsViewSet(mixins.ListModelMixin,
         return self.queryset.filter(owner=self.request.user)
 
 
-class InvitedPersonModelViewSet(mixins.CreateModelMixin,
+class InvitedPersonModelViewSet(mixins.ListModelMixin,
+                                mixins.CreateModelMixin,
                                 mixins.DestroyModelMixin,
                                 GenericViewSet):
     """ View set for Invited persons """
 
-    queryset = InvitedPerson.objects.all()
+    queryset = InvitedPerson.objects.all().annotate(
+        name=F('room__name')
+    )
     serializer_class = InvitedPersonModelSerializer
     permission_classes = [permissions.IsAuthenticated]
+
+    def get_queryset(self):
+        return self.queryset.filter(user=self.request.user)
 
     def create(self, request, *args, **kwargs):
         if validate_invite_person(request=request):

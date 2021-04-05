@@ -1,11 +1,22 @@
 <template>
 <div class="container">
   <div class="rooms">
+    <h1 class="rooms__title"> My Rooms: </h1>
     <div class="room" v-for="room in rooms"
          :key="room.id">
       <div class="room__items">
-        <p class="room__item__name">{{ room.name }}</p>
+        <p class="room__item__name">Room name: {{ room.name }}</p>
         <a :href="`/chat/${room.name}/constant`" class="room__item__link">move</a>
+      </div>
+    </div>
+  </div>
+  <div class="rooms">
+    <h1 class="rooms__title"> Invited Rooms: </h1>
+    <div class="room" v-for="invitedRoom in invitedRooms"
+         :key="invitedRoom.id">
+      <div class="room__items">
+        <p class="room__item__name">Room name: {{ invitedRoom.name }}</p>
+        <a :href="`/chat/${invitedRoom.name}/constant`" class="room__item__link">move</a>
       </div>
     </div>
   </div>
@@ -17,11 +28,13 @@ export default {
   name: "my_chats",
   data() {
     return {
-      rooms: []
+      rooms: [],
+      invitedRooms: []
     }
   },
   mounted() {
     this.getMyRooms()
+    this.getInvitedRooms()
   },
   methods: {
     async getMyRooms() {
@@ -35,6 +48,20 @@ export default {
       if (response.status === 200) {
         this.rooms = await response.json()
 
+      }else{
+        console.log('not found')
+      }
+    },
+    async getInvitedRooms() {
+      const response = await fetch('http://127.0.0.1:8000/invite_person/', {
+        method: 'GET',
+        headers: {
+          'Content-Type': 'application/json',
+          'Authorization': `Token ${localStorage.getItem('access_token')}`
+        },
+      })
+      if (response.status === 200) {
+        this.invitedRooms = await response.json()
       }else{
         console.log('not found')
       }
@@ -53,8 +80,13 @@ export default {
   align-items: center;
   justify-content: center;
   overflow-y: scroll;
-  height: 100vh;
+  height: 40vh;
   max-height: 450px;
+}
+
+.rooms__title {
+  font-style: italic;
+  color: white;
 }
 
 .room__items {
