@@ -1,15 +1,15 @@
 <template>
   <div class="container">
     <div class="main">
-      <form class="chats__form">
+      <form class="chats__form" @submit.prevent="chatHandler">
         <h4 class="chats__form__text"> You can connect to exist chat.</h4>
-        <input type="text" class="chats__form__input" placeholder="enter the name of chat">
+        <input v-model="roomName1" type="text" class="chats__form__input" placeholder="enter the name of chat">
         <button class="chats__form__button"> connect </button>
       </form>
       <h4 class="chats__form__text"> If you want to create permanent you should sign in</h4>
-      <form class="chats__form" v-if="is_login">
+      <form class="chats__form" v-if="is_login" @submit.prevent="permanentChatHandler">
         <h4 class="chats__form__text"> You can create a permanent chat.</h4>
-        <input type="text" class="chats__form__input" placeholder="enter the name of chat">
+        <input v-model="roomName2" type="text" class="chats__form__input" placeholder="enter the name of chat">
         <button class="chats__form__button"> connect </button>
       </form>
     </div>
@@ -22,7 +22,9 @@ export default {
   data() {
     return {
       is_login: false,
-      user_id: ''
+      user_id: '',
+      roomName1: '',
+      roomName2: '',
     }
   },
   async mounted() {
@@ -33,11 +35,49 @@ export default {
       if (localStorage.getItem('access_token')) {
         this.is_login = true
         this.user_id = localStorage.getItem('user_id')
-        console.log(this.user_id)
       }else {
         this.is_login = false
       }
     },
+    async chatHandler() {
+      const data = {
+        room: this.roomName1
+      }
+      const response = await fetch(`http://127.0.0.1:8000/chat/${data.room}/un_constant/`, {
+        method: 'GET',
+        headers: {
+          'Content-Type': 'application/json',
+          'Authorization': `Token ${localStorage.getItem('access_token')}`
+        }
+      })
+      const res = await response.json()
+      if (response.status === 200) {
+        await this.$router.push(`/chat/${data.room}/un_constant`)
+      }
+      else {
+        console.log(res)
+      }
+    },
+    async permanentChatHandler() {
+      const data = {
+        room: this.roomName2
+      }
+      const response = await fetch(`http://127.0.0.1:8000/chat/${data.room}/constant/`, {
+        method: 'POST',
+        headers: {
+          'Content-Type': 'application/json',
+          'Authorization': `Token ${localStorage.getItem('access_token')}`
+        },
+        body: JSON.stringify(data)
+      })
+      const res = await response.json()
+      if (response.status === 201) {
+        await this.$router.push(`/chat/${data.room}/constant`)
+      }
+      else {
+        console.log(res)
+      }
+    }
   }
 }
 </script>

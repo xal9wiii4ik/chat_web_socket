@@ -10,6 +10,11 @@ const routes = [
     path: '/login',
     name: 'login',
     component: () => import('@/views/login')
+  },
+  {
+    path: '/chat/:room_name/:chat_type',
+    name: 'chat',
+    component: () => import('@/views/chat')
   }
 ]
 
