@@ -1,5 +1,6 @@
 <template>
 <div class="container">
+  <h4 class="dialog__message" v-if="!chatType">Your link to invite: {{ this.link }}</h4>
   <div class="dialogs">
     <div class="dialog" v-for="dialog in dialogs"
          :key="dialog.id">
@@ -31,7 +32,8 @@ export default {
       chatSocket: '',
       userName: '',
       username: '',
-      chatType: false
+      chatType: false,
+      link: ''
     }
   },
   created() {
@@ -75,6 +77,7 @@ export default {
       if (this.$route.params.chat_type === 'constant'){
         this.chatType = true
       }
+      this.link = `http://127.0.0.1:8000/${this.$route.params.room_name}/un_constant`
     },
     sendMes() {
       console.log()

@@ -15,6 +15,11 @@ const routes = [
     path: '/chat/:room_name/:chat_type',
     name: 'chat',
     component: () => import('@/views/chat')
+  },
+  {
+    path: '/my_chats/:id',
+    name: 'my_chats',
+    component: () => import('@/views/my_chats')
   }
 ]
 

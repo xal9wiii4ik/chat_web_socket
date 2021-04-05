@@ -8,7 +8,7 @@
           </router-link>
         </li>
         <li class="header__list__item">
-          <router-link v-if="is_login" class="header__list__link" to="/">
+          <router-link v-if="is_login" class="header__list__link" :to="`/my_chats/${this.user_id}`">
             <h4 class="header__list__link">My Chats</h4>
           </router-link>
         </li>
@@ -50,7 +50,6 @@ export default {
       if (localStorage.getItem('access_token')) {
         this.is_login = true
         this.user_id = localStorage.getItem('user_id')
-        console.log(this.user_id)
       }else {
         this.is_login = false
       }

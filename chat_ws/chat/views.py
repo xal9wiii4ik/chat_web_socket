@@ -25,7 +25,7 @@ class RoomsViewSet(mixins.ListModelMixin,
     permission_classes = {permissions.IsAuthenticated}
 
     def get_queryset(self):
-        return self.queryset.objects.filter(owner=self.request.user)
+        return self.queryset.filter(owner=self.request.user)
 
 
 class InvitedPersonModelViewSet(mixins.CreateModelMixin,
