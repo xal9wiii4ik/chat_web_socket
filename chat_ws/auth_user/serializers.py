@@ -1,8 +1,12 @@
-from rest_framework import serializers
+from rest_framework_simplejwt.serializers import TokenObtainPairSerializer
 
 
-class LogInSerializer(serializers.Serializer):
-    """Serializer for log in"""
+class CustomTokenObtainPairSerializer(TokenObtainPairSerializer):
+    """ Custom token serializer """
 
-    username = serializers.CharField(max_length=150, required=True)
-    password = serializers.CharField(max_length=128, required=True)
+    def validate(self, attrs):
+        """ add user_id to response data """
+
+        data = super(CustomTokenObtainPairSerializer, self).validate(attrs)
+        data.update({'id': self.user.id})
+        return data

@@ -1,14 +1,14 @@
 <template>
 <div class="container">
-  <form class="login_form">
+  <form class="login_form" @submit.prevent="submitLoginHandler">
     <div class="input__items">
       <div class="input__item">
         <h3 class="input__item__text">username</h3>
-        <input type="text" class="input__item__input" placeholder="login">
+        <input v-model="login" type="text" class="input__item__input" placeholder="login">
       </div>
       <div class="input__item">
         <h3 class="input__item__text">password</h3>
-        <input type="text" class="input__item__input" placeholder="login">
+        <input v-model="password" type="text" class="input__item__input" placeholder="password">
       </div>
       <div class="input__item">
         <a href="#" class="input__item__txt">Forgot Password</a>
@@ -26,10 +26,63 @@ export default {
   name: "login",
   data() {
     return {
-
+      login: '',
+      password: '',
+      email: ''
     }
-  }
-  }
+  },
+  methods: {
+    async submitLoginHandler() {
+      try {
+        const data = {
+          username: this.login,
+          password: this.password
+        }
+        const response = await fetch('http://127.0.0.1:8000/auth/login/', {
+          method: 'POST',
+          headers: {
+            'Content-Type': 'application/json'
+          },
+          body: JSON.stringify(data)
+        })
+        const token = await response.json()
+        if (response.status === 200) {
+          localStorage.setItem('access_token', token.access)
+          localStorage.setItem('refresh_token', token.refresh)
+          localStorage.setItem('username', data.username)
+          localStorage.setItem('user_id', token.id)
+          await this.$router.push('/')
+          location.reload()
+        } else {
+          console.log(token)
+        }
+      } catch (e) {
+        alert(e);
+      }
+    },
+  //   async submitRememberHandler() {
+  //     try {
+  //       const data = {
+  //         email: this.email
+  //       }
+  //       const response = await fetch(`http://localhost:8000/auth/reset_password/`, {
+  //         method: 'POST',
+  //         headers: {
+  //           'Content-Type': 'application/json',
+  //         },
+  //         body: JSON.stringify(data)
+  //       })
+  //       if (response.status === 200) {
+  //         console.log('200')
+  //       } else {
+  //         console.log('400')
+  //       }
+  //     } catch (e) {
+  //       console.log(e)
+  //     }
+  //   }
+  },
+}
 </script>
 <style scoped>
 .login_form {

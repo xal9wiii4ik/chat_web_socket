@@ -8,30 +8,61 @@
           </router-link>
         </li>
         <li class="header__list__item">
-          <router-link class="header__list__link" to="/">
+          <router-link v-if="is_login" class="header__list__link" to="/">
             <h4 class="header__list__link">My Chats</h4>
           </router-link>
         </li>
         <li class="header__list__item">
-          <router-link class="header__list__link" to="/login">
+          <router-link v-if="!is_login" class="header__list__link" to="/login">
             <h4 class="header__list__link">sign in</h4>
           </router-link>
         </li>
         <li class="header__list__item">
-          <router-link class="header__list__link" to="/">
+          <router-link v-if="!is_login" class="header__list__link" to="/">
             <h4 class="header__list__link">sign up</h4>
           </router-link>
         </li>
         <li class="header__list__item">
-          <router-link class="header__list__link" to="/">
-          <h4 class="header__list__link">logout</h4>
-          </router-link>
+          <a v-if="is_login" v-on:click="logout" class="header__list__link">
+            <h4 class="header__list__link">logout</h4>
+          </a>
         </li>
       </ul>
     </nav>
   </div>
   <router-view/>
 </template>
+
+<script>
+export default {
+  name: 'App',
+  data() {
+    return {
+      is_login: false,
+      user_id: ''
+    }
+  },
+  async mounted() {
+    await this.getLogin()
+  },
+  methods: {
+    async getLogin() {
+      if (localStorage.getItem('access_token')) {
+        this.is_login = true
+        this.user_id = localStorage.getItem('user_id')
+        console.log(this.user_id)
+      }else {
+        this.is_login = false
+      }
+    },
+    async logout() {
+      localStorage.clear()
+      this.is_login = false
+      await this.$router.push('/login')
+    }
+  }
+}
+</script>
 
 <style>
 
